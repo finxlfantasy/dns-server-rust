@@ -19,6 +19,26 @@ fn main() {
              Err(e) => {
                  eprintln!("Error receiving data: {}", e);
                  break;
+
+
+                 pub struct DNSserver {
+                    id: u16,
+                    qr: u16,
+                    opcode: u8,
+                    aa: u8,
+                    tc: u8,
+                    rd: u8,
+                    ra: u8,
+                    z: u8;
+                    rcode: u8,
+                    qdcount: u16,
+                    ancount: u16,
+                    nscount: u16,
+                    arcount: u16,
+
+                    let id_bytes = header.id.to_be_bytes();
+                    buffer.extend_from_slice(&id_bytes);
+                 }
              }
          }
      }
