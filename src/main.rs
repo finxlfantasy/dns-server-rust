@@ -20,7 +20,6 @@ fn main() {
                  eprintln!("Error receiving data: {}", e);
                  break;
 
-
                  pub struct DNSserver {
                     id: u16,
                     qr: u16,
@@ -29,7 +28,7 @@ fn main() {
                     tc: u8,
                     rd: u8,
                     ra: u8,
-                    z: u8;
+                    z: u8,
                     rcode: u8,
                     qdcount: u16,
                     ancount: u16,
