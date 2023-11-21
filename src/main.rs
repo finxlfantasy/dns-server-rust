@@ -35,8 +35,6 @@ fn main() {
                     nscount: u16,
                     arcount: u16,
 
-                    let id_bytes = header.id.to_be_bytes();
-                    buffer.extend_from_slice(&id_bytes);
                  }
              }
          }
