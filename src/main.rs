@@ -22,15 +22,8 @@ pub struct DNSHeader {
 }
 
 impl DNSHeader {
-    fn from_reader<R: Read>(reader: &mut R) -> io::Result<Self> {
-        let mut buf = vec![0; 12];
-        reader.read_exact(&mut buf)?;
-        let header = deserialize(&buf).unwrap();
-        Ok(header)
-    }
-
-    fn write<W: Write>(&self, writer: &mut W) -> io::Result<()> {
-        let buf = serialize(self).unwrap();
+    fn write<W: Write>(&self, writer: &mut W) -> Result<(), Box<dyn std::error::Error>> {
+        let buf = serialize(self)?;
         writer.write_all(&buf)?;
         Ok(())
     }
@@ -46,12 +39,7 @@ fn main() {
     loop {
         match udp_socket.recv_from(&mut buf) {
             Ok((size, source)) => {
-                let _received_data = String::from_utf8_lossy(&buf[0..size]);
                 println!("Received {} bytes from {}", size, source);
-                let response = [];
-                udp_socket
-                    .send_to(&response, source)
-                    .expect("Failed to send response");
 
                 let response_header = DNSHeader {
                     id: 1234,
@@ -70,10 +58,12 @@ fn main() {
                 };
 
                 let mut response_buffer = Vec::new();
-                response_header.write(&mut response_buffer);
+                if let Err(e) = response_header.write(&mut response_buffer) {
+                    eprintln!("Error writing header: {}", e);
+                    continue;
+                }
 
                 udp_socket.send_to(&response_buffer, source);
-                response_buffer = Vec::new();
             }
             Err(e) => {
                 eprintln!("Error receiving data: {}", e);
