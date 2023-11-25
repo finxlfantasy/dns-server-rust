@@ -50,9 +50,16 @@ fn main() {
         match udp_socket.recv_from(&mut buf) {
             Ok((size, source)) => {
                 println!("Received {} bytes from {}", size, source);
-
-                // Add the following line to print the received data
                 println!("Received data: {:?}", &buf[..size]);
+
+                match bincode::deserialize::<DNSMessage>(&buf[..size]) {
+                    Ok(deserialized) => {
+                        println!("Deserialization successful: {:?}", deserialized);
+                    }
+                    Err(e) => {
+                        eprintln!("Error deserializing message: {}", e);
+                    }
+                }
 
                 let response_message = DNSMessage {
                     header: DNSHeader {
