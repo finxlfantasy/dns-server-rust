@@ -51,6 +51,9 @@ fn main() {
             Ok((size, source)) => {
                 println!("Received {} bytes from {}", size, source);
 
+                // Add the following line to print the received data
+                println!("Received data: {:?}", &buf[..size]);
+
                 let response_message = DNSMessage {
                     header: DNSHeader {
                         id: 1234,
@@ -77,6 +80,9 @@ fn main() {
                     eprintln!("Error writing message: {}", e);
                     continue;
                 }
+
+                // Add the following line to print the received data
+                println!("Received data: {:?}", &buf[..size]);
 
                 let _ = udp_socket.send_to(&response_buffer, source);
             }
