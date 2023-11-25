@@ -21,7 +21,18 @@ pub struct DNSHeader {
     arcount: u16,
 }
 
-impl DNSHeader {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DNSQuestion {
+    // Placeholder for DNS question structure
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DNSMessage {
+    header: DNSHeader,
+    question: DNSQuestion,
+}
+
+impl DNSMessage {
     fn write<W: Write>(&self, writer: &mut W) -> Result<(), Box<dyn std::error::Error>> {
         let buf = serialize(self)?;
         writer.write_all(&buf)?;
@@ -41,25 +52,30 @@ fn main() {
             Ok((size, source)) => {
                 println!("Received {} bytes from {}", size, source);
 
-                let response_header = DNSHeader {
-                    id: 1234,
-                    qr: 1,
-                    opcode: 0,
-                    aa: 0,
-                    tc: 0,
-                    rd: 1,
-                    ra: 0,
-                    z: 0,
-                    rcode: 0,
-                    qdcount: 0,
-                    ancount: 0,
-                    nscount: 0,
-                    arcount: 0,
+                let response_message = DNSMessage {
+                    header: DNSHeader {
+                        id: 1234,
+                        qr: 1,
+                        opcode: 0,
+                        aa: 0,
+                        tc: 0,
+                        rd: 1,
+                        ra: 0,
+                        z: 0,
+                        rcode: 0,
+                        qdcount: 0,
+                        ancount: 0,
+                        nscount: 0,
+                        arcount: 0,
+                    },
+                    question: DNSQuestion {
+                        // Fill in question details here
+                    },
                 };
 
                 let mut response_buffer = Vec::new();
-                if let Err(e) = response_header.write(&mut response_buffer) {
-                    eprintln!("Error writing header: {}", e);
+                if let Err(e) = response_message.write(&mut response_buffer) {
+                    eprintln!("Error writing message: {}", e);
                     continue;
                 }
 
