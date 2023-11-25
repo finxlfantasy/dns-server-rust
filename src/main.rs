@@ -1,7 +1,6 @@
-use bincode::{deserialize, serialize};
-use serde::{Deserialize, Serialize};
+use bincode::serialize;
 use serde_derive::{Deserialize, Serialize};
-use std::io::{self, Read, Write};
+use std::io::Write;
 use std::net::UdpSocket;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -79,7 +78,7 @@ fn main() {
                     continue;
                 }
 
-                udp_socket.send_to(&response_buffer, source);
+                let _ = udp_socket.send_to(&response_buffer, source);
             }
             Err(e) => {
                 eprintln!("Error receiving data: {}", e);
