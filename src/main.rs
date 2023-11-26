@@ -1,4 +1,4 @@
-use bincode::serialize;
+use bincode::{deserialize, serialize};
 use serde_derive::{Deserialize, Serialize};
 use std::io::Write;
 use std::net::UdpSocket;
@@ -39,6 +39,34 @@ impl DNSMessage {
     }
 }
 
+impl DNSMessage {
+    fn new() -> DNSHeader {
+        DNSHeader {
+            id: 1234,
+            qr: 1,
+            opcode: 0,
+            aa: 0,
+            tc: 0,
+            rd: 1,
+            ra: 0,
+            z: 0,
+            rcode: 0,
+            qdcount: 0,
+            ancount: 0,
+            nscount: 0,
+            arcount: 0,
+        }
+    }
+
+    fn to_bytes(&self) -> Vec<u8> {
+        serialize(self).expect("Failed to serialize DNS-Header")
+    }
+
+    fn from_bytes(data: &[u8]) -> DNSHeader {
+        deserialize(data).expect("Failed to deserialize DNS-Header")
+    }
+    
+}
 const BUFFER_SIZE: usize = 512;
 fn main() {
     println!("Logs from your program will appear here!");
@@ -49,49 +77,9 @@ fn main() {
     loop {
         match udp_socket.recv_from(&mut buf) {
             Ok((size, source)) => {
+                let _received_data = String::from_utf8_lossy(&buf[0..size]);
                 println!("Received {} bytes from {}", size, source);
                 println!("Received data: {:?}", &buf[..size]);
-
-                match bincode::deserialize::<DNSMessage>(&buf[..size]) {
-                    Ok(deserialized) => {
-                        println!("Deserialization successful: {:?}", deserialized);
-                    }
-                    Err(e) => {
-                        eprintln!("Error deserializing message: {}", e);
-                    }
-                }
-
-                let response_message = DNSMessage {
-                    header: DNSHeader {
-                        id: 1234,
-                        qr: 1,
-                        opcode: 0,
-                        aa: 0,
-                        tc: 0,
-                        rd: 1,
-                        ra: 0,
-                        z: 0,
-                        rcode: 0,
-                        qdcount: 0,
-                        ancount: 0,
-                        nscount: 0,
-                        arcount: 0,
-                    },
-                    question: DNSQuestion {
-                        // Fill in question details here
-                    },
-                };
-
-                let mut response_buffer = Vec::new();
-                if let Err(e) = response_message.write(&mut response_buffer) {
-                    eprintln!("Error writing message: {}", e);
-                    continue;
-                }
-
-                // Add the following line to print the received data
-                println!("Received data: {:?}", &buf[..size]);
-
-                let _ = udp_socket.send_to(&response_buffer, source);
             }
             Err(e) => {
                 eprintln!("Error receiving data: {}", e);
