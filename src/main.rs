@@ -1,6 +1,5 @@
-use bincode::{deserialize, serialize};
+use bincode::serialize;
 use serde_derive::{Deserialize, Serialize};
-use std::io::Write;
 use std::net::UdpSocket;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,10 +19,12 @@ pub struct DNSHeader {
     arcount: u16,
 }
 
+/*
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DNSQuestion {
     // Placeholder for DNS question structure
 }
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DNSMessage {
@@ -38,8 +39,9 @@ impl DNSMessage {
         Ok(())
     }
 }
+*/
 
-impl DNSMessage {
+impl DNSHeader {
     fn new() -> DNSHeader {
         DNSHeader {
             id: 1234,
@@ -61,11 +63,6 @@ impl DNSMessage {
     fn to_bytes(&self) -> Vec<u8> {
         serialize(self).expect("Failed to serialize DNS-Header")
     }
-
-    fn from_bytes(data: &[u8]) -> DNSHeader {
-        deserialize(data).expect("Failed to deserialize DNS-Header")
-    }
-    
 }
 const BUFFER_SIZE: usize = 512;
 fn main() {
@@ -80,6 +77,11 @@ fn main() {
                 let _received_data = String::from_utf8_lossy(&buf[0..size]);
                 println!("Received {} bytes from {}", size, source);
                 println!("Received data: {:?}", &buf[..size]);
+                let header = DNSHeader::new();
+                let response = header.to_bytes();
+                udp_socket
+                    .send_to(&response, source)
+                    .expect("Failed to send response");
             }
             Err(e) => {
                 eprintln!("Error receiving data: {}", e);
