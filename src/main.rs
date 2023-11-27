@@ -1,11 +1,10 @@
-use bincode::serialize;
 use serde_derive::{Deserialize, Serialize};
 use std::net::UdpSocket;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DNSHeader {
     id: u16,
-    qr: u16,
+    qr: u8,
     opcode: u8,
     aa: u8,
     tc: u8,
@@ -18,28 +17,6 @@ pub struct DNSHeader {
     nscount: u16,
     arcount: u16,
 }
-
-/*
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DNSQuestion {
-    // Placeholder for DNS question structure
-}
-
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DNSMessage {
-    header: DNSHeader,
-    question: DNSQuestion,
-}
-
-impl DNSMessage {
-    fn write<W: Write>(&self, writer: &mut W) -> Result<(), Box<dyn std::error::Error>> {
-        let buf = serialize(self)?;
-        writer.write_all(&buf)?;
-        Ok(())
-    }
-}
-*/
 
 impl DNSHeader {
     fn new() -> DNSHeader {
@@ -61,7 +38,15 @@ impl DNSHeader {
     }
 
     fn to_bytes(&self) -> Vec<u8> {
-        serialize(self).expect("Failed to serialize DNS-Header")
+        let mut buf = vec![0; std::mem::size_of::<DNSHeader>()];
+        buf[0..2].copy_from_slice(&self.id.to_be_bytes());
+        buf[2] = (self.qr << 7) | (self.opcode << 3) | (self.aa << 2) | (self.tc << 1) | self.rd;
+        buf[3] = (self.ra << 7) | (self.z << 4) | self.rcode;
+        buf[4..6].copy_from_slice(&self.qdcount.to_be_bytes());
+        buf[6..8].copy_from_slice(&self.ancount.to_be_bytes());
+        buf[8..10].copy_from_slice(&self.nscount.to_be_bytes());
+        buf[10..12].copy_from_slice(&self.arcount.to_be_bytes());
+        buf
     }
 }
 const BUFFER_SIZE: usize = 512;
