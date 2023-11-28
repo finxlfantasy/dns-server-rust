@@ -18,6 +18,12 @@ pub struct DNSHeader {
     arcount: u16,
 }
 
+struct DNSQuestion {
+    domain_name: String,
+    query_type: u16,
+    query_class: u16,,
+}
+
 impl DNSHeader {
     fn new() -> DNSHeader {
         DNSHeader {
