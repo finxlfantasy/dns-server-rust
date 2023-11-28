@@ -24,6 +24,8 @@ struct DNSQuestion {
     query_class: u16,
 }
 
+impl DNSQuestion {}
+
 impl DNSHeader {
     fn new() -> DNSHeader {
         DNSHeader {
