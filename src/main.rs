@@ -21,7 +21,7 @@ pub struct DNSHeader {
 struct DNSQuestion {
     domain_name: String,
     query_type: u16,
-    query_class: u16,,
+    query_class: u16,
 }
 
 impl DNSHeader {
