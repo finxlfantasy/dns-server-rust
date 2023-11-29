@@ -24,7 +24,17 @@ struct DNSQuestion {
     query_class: u16,
 }
 
-impl DNSQuestion {}
+impl From<&str> for &[u8] {
+    fn from(domain: &str) -> Self { ... } 
+}
+
+
+impl DNSQuestion {
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes = Vec::new()
+        ...
+    }
+}
 
 impl DNSHeader {
     fn new() -> DNSHeader {
