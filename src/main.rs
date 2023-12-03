@@ -1,5 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
 use std::net::UdpSocket;
+use rustdns::Message;
+use rustdns::types::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DNSHeader {
@@ -24,17 +26,13 @@ struct DNSQuestion {
     query_class: u16,
 }
 
-impl From<&str> for &[u8] {
-    fn from(domain: &str) -> Self { ... } 
-}
-
-
 impl DNSQuestion {
     fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new()
-        ...
+        bytes
     }
 }
+
 
 impl DNSHeader {
     fn new() -> DNSHeader {
@@ -69,6 +67,8 @@ impl DNSHeader {
 }
 const BUFFER_SIZE: usize = 512;
 fn main() {
+    let mut m = Message::default();
+    m.add_question("codecrafters.io", Type::A, Class::Internet);
     println!("Logs from your program will appear here!");
 
     let udp_socket = UdpSocket::bind("127.0.0.1:2053").expect("Failed to bind to address");
@@ -80,8 +80,21 @@ fn main() {
                 let _received_data = String::from_utf8_lossy(&buf[0..size]);
                 println!("Received {} bytes from {}", size, source);
                 println!("Received data: {:?}", &buf[..size]);
-                let header = DNSHeader::new();
-                let response = header.to_bytes();
+
+                let question = DNSQuestion {
+                    domain_name: "codecrafters.io".to_string(),
+                    query_type: 1,
+                    query_class: 1,
+                };
+                let question_bytes = question.to_bytes();
+
+                let mut header = DNSHeader::new();
+                header.qdcount += 1;
+                let header_bytes = header.to_bytes();
+
+                let mut response = header.to_bytes();
+                response.extend(question_bytes);
+
                 udp_socket
                     .send_to(&response, source)
                     .expect("Failed to send response");
