@@ -1,7 +1,7 @@
+use rustdns::types::*;
+use rustdns::Message;
 use serde_derive::{Deserialize, Serialize};
 use std::net::UdpSocket;
-use rustdns::Message;
-use rustdns::types::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DNSHeader {
@@ -19,7 +19,7 @@ pub struct DNSHeader {
     nscount: u16,
     arcount: u16,
 }
-
+/*
 struct DNSQuestion {
     domain_name: String,
     query_type: u16,
@@ -28,12 +28,11 @@ struct DNSQuestion {
 
 impl DNSQuestion {
     fn to_bytes(&self) -> Vec<u8> {
-        let mut bytes = Vec::new()
+        let mut bytes = Vec::new();
         bytes
     }
 }
-
-
+ */
 impl DNSHeader {
     fn new() -> DNSHeader {
         DNSHeader {
@@ -81,19 +80,19 @@ fn main() {
                 println!("Received {} bytes from {}", size, source);
                 println!("Received data: {:?}", &buf[..size]);
 
-                let question = DNSQuestion {
-                    domain_name: "codecrafters.io".to_string(),
-                    query_type: 1,
-                    query_class: 1,
-                };
-                let question_bytes = question.to_bytes();
-
+                /*    let question = DNSQuestion {
+                                   domain_name: "codecrafters.io".to_string(),
+                                   query_type: 1,
+                                   query_class: 1,
+                               };
+                               let question_bytes = question.to_bytes();
+                */
                 let mut header = DNSHeader::new();
-                header.qdcount += 1;
+                //  header.qdcount += 1;
                 let header_bytes = header.to_bytes();
 
                 let mut response = header.to_bytes();
-                response.extend(question_bytes);
+                // response.extend(question_bytes);
 
                 udp_socket
                     .send_to(&response, source)
