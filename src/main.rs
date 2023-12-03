@@ -27,6 +27,18 @@ struct DNSQuestion {
 impl DNSQuestion {
     fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
+
+        for label in self.domain_name.split('.') {
+            bytes.push(label.len() as u8);
+            bytes.extend_from_slice(label.as_bytes());
+        }
+        bytes.push(0); //End of domain name
+
+        // Convert query_type to bytes
+        bytes.extend_from_slice(&self.query_type.to_be_bytes());
+
+        // Convert query_class to bytes
+        bytes.extend_from_slice(&self.query_class.to_be_bytes());
         bytes
     }
 }
@@ -77,7 +89,7 @@ fn main() {
                 println!("Received data: {:?}", &buf[..size]);
 
                 let question = DNSQuestion {
-                    domain_name: "codecrafters.io".to_string(),
+                    domain_name: "codecrafters.io.".to_string(),
                     query_type: 1,
                     query_class: 1,
                 };
@@ -85,7 +97,7 @@ fn main() {
 
                 let mut header = DNSHeader::new();
                 header.qdcount += 1;
-                let header_bytes = header.to_bytes();
+                let _header_bytes = header.to_bytes();
 
                 let mut response = header.to_bytes();
                 response.extend(question_bytes);
