@@ -28,7 +28,7 @@ impl DNSQuestion {
     fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
 
-        let labels = self.domain_name.split('codecrafters').collect::<Vec<&str>>();
+        let labels = self.domain_name.split('.').collect::<Vec<&str>>();
         for label in labels {
             let label_bytes = label.as_bytes();
             bytes.push(label.len() as u8);
@@ -90,7 +90,7 @@ fn main() {
                 println!("Received data: {:?}", &buf[..size]);
 
                 let question = DNSQuestion {
-                    domain_name: "codecrafters.io.".to_string(),
+                    domain_name: "codecrafters.io".to_string(),
                     query_type: 1,
                     query_class: 1,
                 };
