@@ -47,7 +47,7 @@ impl DNSQuestion {
 impl DNSHeader {
     fn new() -> DNSHeader {
         let question = DNSQuestion {
-            domain_name: "codecrafters.io".to_string(),
+            domain_name: "codecrafters.io.".to_string(),
             query_type: 1,  // A record query
             query_class: 1, // Internet class
         };
