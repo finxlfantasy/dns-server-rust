@@ -34,10 +34,10 @@ impl DNSQuestion {
         }
         bytes.push(0); //End of domain name
 
-        // Convert query_type to bytes
+        // Convert query type to bytes
         bytes.extend_from_slice(&self.query_type.to_be_bytes());
 
-        // Convert query_class to bytes
+        // Convert query class to bytes
         bytes.extend_from_slice(&self.query_class.to_be_bytes());
         bytes
     }
