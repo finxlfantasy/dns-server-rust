@@ -28,15 +28,16 @@ impl DNSQuestion {
     fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
 
-        for label in self.domain_name.trim_end_matches('.').split('.') {
+        let labels = self.domain_name.split('.').collect::<Vec<&str>>();
+        for label in labels {
+            let label_bytes = label.as_bytes();
             bytes.push(label.len() as u8);
-            bytes.extend_from_slice(label.as_bytes());
+            bytes.extend_from_slice(label_bytes);
         }
         bytes.push(0); //End of domain name
 
         // Convert query type to bytes
         bytes.extend_from_slice(&self.query_type.to_be_bytes());
-
         // Convert query class to bytes
         bytes.extend_from_slice(&self.query_class.to_be_bytes());
         bytes
