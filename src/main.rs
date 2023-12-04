@@ -90,7 +90,7 @@ fn main() {
                 println!("Received data: {:?}", &buf[..size]);
 
                 let question = DNSQuestion {
-                    domain_name: "codecrafters.io".to_string(),
+                    domain_name: "codecrafters.io.".to_string(),
                     query_type: 1,
                     query_class: 1,
                 };
