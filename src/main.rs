@@ -87,6 +87,45 @@ impl Default for DNSQuestion {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct DNSAnswer {
+    domain_name: Vec<u8>,
+    query_class: u16,
+    query_type: u16,
+    ttl: u32,
+    rdlength: u16,
+    rdata: Vec<u8>,
+}
+
+impl DNSAnswer {
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut buffer = vec![];
+        buffer.extend(&self.domain_name);
+        buffer.extend(&self.query_type.to_be_bytes());
+        buffer.extend(&self.query_class.to_be_bytes());
+        buffer.extend(&self.ttl.to_be_bytes());
+        buffer.extend(&self.rdlength.to_be_bytes());
+        buffer.extend(&self.rdata);
+        buffer
+    }
+}
+
+impl Default for DNSAnswer {
+    fn default() -> Self {
+        Self {
+            domain_name: vec![
+                0xc, 0x63, 0x6f, 0x64, 0x65, 0x63, 0x72, 0x61, 0x66, 0x74, 0x65, 0x72, 0x73, 0x2,
+                0x69, 0x6f, 0x0,
+            ],
+            query_type: 1,
+            query_class: 1,
+            ttl: 60,
+            rdlength: 4,
+            rdata: vec![0x08, 0x08, 0x08, 0x08],
+        }
+    }
+}
+
 const BUFFER_SIZE: usize = 512;
 
 fn main() {
@@ -101,6 +140,7 @@ fn main() {
                 println!("Received data: {:?}", &buf[..size]);
                 let mut response = DNSHeader::default().to_bytes().to_vec();
                 response.extend_from_slice(&DNSQuestion::default().to_bytes());
+                response.extend_from_slice(&DNSAnswer::default().to_bytes());
                 udp_socket
                     .send_to(&response, source)
                     .expect("Failed to send response");
