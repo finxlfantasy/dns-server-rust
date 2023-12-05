@@ -4,19 +4,56 @@ use std::net::UdpSocket;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DNSHeader {
     id: u16,
-    qr: u8,
+    qr: bool,
     opcode: u8,
-    aa: u8,
-    tc: u8,
-    rd: u8,
-    ra: u8,
+    aa: bool,
+    tc: bool,
+    rd: bool,
+    ra: bool,
     z: u8,
     rcode: u8,
     qdcount: u16,
     ancount: u16,
     nscount: u16,
     arcount: u16,
-    question: DNSQuestion,
+}
+
+impl DNSHeader {
+    fn to_bytes(&self) -> [u8; 12] {
+        let mut buffer = [0; 12];
+        buffer[0..2].copy_from_slice(&self.id.to_be_bytes());
+        buffer[2] = (self.qr as u8) << 7
+            | (self.opcode as u8) << 3
+            | (self.aa as u8) << 2
+            | (self.tc as u8) << 1
+            | (self.rd as u8);
+        buffer[3] = (self.ra as u8) << 7 | (self.z as u8) << 4 | (self.rcode as u8);
+        buffer[4..6].copy_from_slice(&self.qdcount.to_be_bytes());
+        buffer[6..8].copy_from_slice(&self.ancount.to_be_bytes());
+        buffer[8..10].copy_from_slice(&self.nscount.to_be_bytes());
+        buffer[10..12].copy_from_slice(&self.arcount.to_be_bytes());
+        buffer
+    }
+}
+
+impl Default for DNSHeader {
+    fn default() -> Self {
+        Self {
+            id: 1234,
+            qr: true,
+            opcode: 0,
+            aa: false,
+            tc: false,
+            rd: false,
+            ra: false,
+            z: 0,
+            rcode: 0,
+            qdcount: 1,
+            ancount: 0,
+            nscount: 0,
+            arcount: 0,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -26,61 +63,27 @@ struct DNSQuestion {
     query_class: u16,
 }
 
-struct DomainBytes(Vec<u8>);
-
-impl From<&str> for DomainBytes {
-    fn from(domain: &str) -> Self {
-        DomainBytes(domain.as_bytes().to_vec())
-    }
-}
-
 impl DNSQuestion {
     fn to_bytes(&self) -> Vec<u8> {
-        let mut bytes = Vec::new();
-        bytes.extend_from_slice(&self.domain_name.as_bytes());
-        bytes.extend_from_slice(&self.query_type.to_be_bytes());
-        bytes.extend_from_slice(&self.query_class.to_be_bytes());
-        bytes
+        let mut buffer = vec![];
+        self.domain_name.split('.').for_each(|split| {
+            buffer.push(split.len() as u8);
+            buffer.extend(split.as_bytes().iter().cloned());
+        });
+        buffer.push(0);
+        buffer.extend(&self.query_type.to_be_bytes());
+        buffer.extend(&self.query_class.to_be_bytes());
+        buffer
     }
 }
 
-impl DNSHeader {
-    fn new() -> DNSHeader {
-        let question = DNSQuestion {
+impl Default for DNSQuestion {
+    fn default() -> Self {
+        Self {
             domain_name: "codecrafters.io".to_string(),
-            query_type: 1,  // A record query
-            query_class: 1, // Internet class
-        };
-        DNSHeader {
-            id: 1234,
-            qr: 1,
-            opcode: 0,
-            aa: 0,
-            tc: 0,
-            rd: 1,
-            ra: 0,
-            z: 0,
-            rcode: 0,
-            qdcount: 1, // Set QDCOUNT to 1 because we have one question
-            ancount: 0,
-            nscount: 0,
-            arcount: 0,
-            question,
+            query_class: 1,
+            query_type: 1,
         }
-    }
-
-    fn to_bytes(&self) -> Vec<u8> {
-        let mut buf = vec![0; std::mem::size_of::<DNSHeader>()];
-        buf[0..2].copy_from_slice(&self.id.to_be_bytes());
-        buf[2] = (self.qr << 7) | (self.opcode << 3) | (self.aa << 2) | (self.tc << 1) | self.rd;
-        buf[3] = (self.ra << 7) | (self.z << 4) | self.rcode;
-        buf[4..6].copy_from_slice(&self.qdcount.to_be_bytes());
-        buf[6..8].copy_from_slice(&self.ancount.to_be_bytes());
-        buf[8..10].copy_from_slice(&self.nscount.to_be_bytes());
-        buf[10..12].copy_from_slice(&self.arcount.to_be_bytes());
-        let question_bytes = self.question.to_bytes();
-        buf.extend_from_slice(&question_bytes);
-        buf
     }
 }
 
@@ -96,9 +99,8 @@ fn main() {
                 let _received_data = String::from_utf8_lossy(&buf[0..size]);
                 println!("Received {} bytes from {}", size, source);
                 println!("Received data: {:?}", &buf[..size]);
-                let header = DNSHeader::new();
-                println!("Question: {:?}", header.question);
-                let response = header.to_bytes();
+                let mut response = DNSHeader::default().to_bytes().to_vec();
+                response.extend_from_slice(&DNSQuestion::default().to_bytes());
                 udp_socket
                     .send_to(&response, source)
                     .expect("Failed to send response");
