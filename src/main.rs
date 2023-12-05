@@ -49,7 +49,7 @@ impl Default for DNSHeader {
             z: 0,
             rcode: 0,
             qdcount: 1,
-            ancount: 0,
+            ancount: 1,
             nscount: 0,
             arcount: 0,
         }
