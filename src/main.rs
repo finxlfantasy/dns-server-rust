@@ -1,20 +1,35 @@
+use packed_struct::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::net::UdpSocket;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(PackedStruct, Debug)]
+#[packed_struct(bit_numbering = "msb0")]
 pub struct DNSHeader {
+    #[packed_field(bits = "0..", endian = "msb")]
     id: u16,
+    #[packed_field()]
     qr: bool,
-    opcode: u8,
+    #[packed_field()]
+    opcode: Integer<u8, packed_bits::Bits<4>>,
+    #[packed_field()]
     aa: bool,
+    #[packed_field()]
     tc: bool,
+    #[packed_field()]
     rd: bool,
+    #[packed_field()]
     ra: bool,
-    z: u8,
-    rcode: u8,
+    #[packed_field()]
+    _z: ReservedZeroes<packed_bits::Bits<3>>,
+    #[packed_field()]
+    rcode: Integer<u8, packed_bits::Bits<4>>,
+    #[packed_field(endian = "msb")]
     qdcount: u16,
+    #[packed_field(endian = "msb")]
     ancount: u16,
+    #[packed_field(endian = "msb")]
     nscount: u16,
+    #[packed_field(endian = "msb")]
     arcount: u16,
 }
 
@@ -23,11 +38,11 @@ impl DNSHeader {
         let mut buffer = [0; 12];
         buffer[0..2].copy_from_slice(&self.id.to_be_bytes());
         buffer[2] = (self.qr as u8) << 7
-            | (self.opcode as u8) << 3
+            | (u8::from(self.opcode) as u8) << 3
             | (self.aa as u8) << 2
             | (self.tc as u8) << 1
             | (self.rd as u8);
-        buffer[3] = (self.ra as u8) << 7 | (self.z as u8) << 4 | (self.rcode as u8);
+        buffer[3] = (self.ra as u8) << 7 | u8::from(self.rcode);
         buffer[4..6].copy_from_slice(&self.qdcount.to_be_bytes());
         buffer[6..8].copy_from_slice(&self.ancount.to_be_bytes());
         buffer[8..10].copy_from_slice(&self.nscount.to_be_bytes());
@@ -41,13 +56,13 @@ impl Default for DNSHeader {
         Self {
             id: 1234,
             qr: true,
-            opcode: 0,
+            opcode: 0.into(),
             aa: false,
             tc: false,
             rd: false,
             ra: false,
-            z: 0,
-            rcode: 0,
+            _z: Default::default(),
+            rcode: 0.into(),
             qdcount: 1,
             ancount: 1,
             nscount: 0,
@@ -138,9 +153,24 @@ fn main() {
                 let _received_data = String::from_utf8_lossy(&buf[0..size]);
                 println!("Received {} bytes from {}", size, source);
                 println!("Received data: {:?}", &buf[..size]);
-                let mut response = DNSHeader::default().to_bytes().to_vec();
+
+                let received_header = DNSHeader::unpack_from_slice(&buf[0..=11]).unwrap();
+
+                let mut response_header = DNSHeader::default();
+                response_header.id = received_header.id;
+                response_header.opcode = received_header.opcode;
+                response_header.rd = received_header.rd;
+                if received_header.opcode == 0.into() {
+                    response_header.rcode = 0.into();
+                } else {
+                    response_header.rcode = 4.into();
+                }
+
+                let mut response = response_header.to_bytes().to_vec();
                 response.extend_from_slice(&DNSQuestion::default().to_bytes());
                 response.extend_from_slice(&DNSAnswer::default().to_bytes());
+
+                // Send the response back to the client
                 udp_socket
                     .send_to(&response, source)
                     .expect("Failed to send response");
