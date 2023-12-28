@@ -1,38 +1,80 @@
-[![progress-banner](https://backend.codecrafters.io/progress/dns-server/a807ff61-ceed-4605-a99b-a6d40171cf66)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# DNS Server in Rust
 
-This is a starting point for Rust solutions to the
-["Build Your Own DNS server" Challenge](https://app.codecrafters.io/courses/dns-server/overview).
+This repository contains a simple DNS server implemented in Rust. The server can handle incoming DNS requests, parse them, and generate appropriate responses. Below are the key components and functionalities of the server.
 
-In this challenge, you'll build a DNS server that's capable of parsing and
-creating DNS packets, responding to DNS queries, handling various record types
-and doing recursive resolve. Along the way we'll learn about the DNS protocol,
-DNS packet format, root servers, authoritative servers, forwarding servers,
-various record types (A, AAAA, CNAME, etc) and more.
+## Getting Started
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+**Prerequisites**: Make sure you have Rust installed on your system. If not, you can download it from here.
 
-# Passing the first stage
+**Clone the Repository**:
 
-The entry point for your `your_server.sh` implementation is in `src/main.rs`.
-Study and uncomment the relevant code, and push your changes to pass the first
-stage:
 
-```sh
-git add .
-git commit -m "pass 1st stage" # any msg
-git push origin master
-```
+The server will start listening on the port specified in the code.
 
-Time to move on to the next stage!
+## Components
 
-# Stage 2 & beyond
+1. **DNSHeader**: This struct represents the header of a DNS message. It includes fields like `id`, `qr`, `opcode`, `aa`, `tc`, `rd`, `ra`, `z`, `rcode`, `qdcount`, `ancount`, `nscount`, and `arcount`.
 
-Note: This section is for stages 2 and beyond.
+2. **DNSQuestion**: This struct represents a DNS question. It includes fields like `domain_name`, `query_type`, and `query_class`.
 
-1. Ensure you have `cargo (1.70)` installed locally
-1. Run `./your_server.sh` to run your program, which is implemented in
-   `src/main.rs`. This command compiles your Rust project, so it might be slow
-   the first time you run it. Subsequent runs will be fast.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+3. **DNSAnswer**: This struct represents a DNS answer. It includes fields like `domain_name`, `query_type`, `query_class`, `ttl`, `rdlength`, and `rdata`.
+
+## Usage
+
+To use this DNS server, you need to have Rust installed on your machine. Then, you can run the server with the command `cargo run`.
+
+## Customizing Responses
+
+You can easily customize the server’s behavior by modifying the DNSHeader, DNSQuestion, and DNSAnswer structs. Here are some ideas:
+
+1. **Dynamic Content**: Instead of fixed responses, generate dynamic content based on the request. For example, fetch data from a database or an external API.
+
+2. **Error Handling**: Improve error handling by adding appropriate status codes and error messages. For instance, handle invalid request paths with a custom error response.
+
+3. **Security Measures**: Consider security aspects. Implement rate limiting to prevent abuse. Validate input data to prevent injection attacks.
+
+### `DNSAnswer`
+
+This struct represents a DNS answer. It includes fields like `domain_name`, `query_type`, `query_class`, `ttl`, `rdlength`, and `rdata`.
+
+It has one method:
+- `to_bytes(&self) -> Vec<u8>`: This method converts the `DNSAnswer` to bytes.
+
+### `DNSQuery`
+
+This struct represents a DNS query. It includes fields like `header` and `question_section`.
+
+It has two methods:
+- `new(id: u16, question: DNSQuestion) -> DNSQuery`: This method creates a new `DNSQuery`.
+- `from_bytes(bytes: &[u8]) -> Result<DNSQuery, ServerError>`: This method creates a `DNSQuery` from bytes.
+
+### `DNSPacket`
+
+This struct represents a DNS packet. It includes fields like `header`, `question_section`, and `answer_section`.
+
+It has two methods:
+- `for_request(query: DNSQuery) -> DNSPacket`: This method creates a new `DNSPacket` for a given request.
+- `to_bytes(&self) -> Vec<u8>`: This method converts the `DNSPacket` to bytes.
+
+## Usage
+
+To use this DNS server, you need to have Rust installed on your machine. Then, you can run the server with the command `cargo run`.
+
+## Customizing Responses
+
+You can easily customize the server’s behavior by modifying the DNSHeader, DNSQuestion, and DNSAnswer structs. Here are some ideas:
+
+1. **Dynamic Content**: Instead of fixed responses, generate dynamic content based on the request. For example, fetch data from a database or an external API.
+
+2. **Error Handling**: Improve error handling by adding appropriate status codes and error messages. For instance, handle invalid request paths with a custom error response.
+
+3. **Security Measures**: Consider security aspects. Implement rate limiting to prevent abuse. Validate input data to prevent injection attacks.
+
+## Contributing
+
+Contributions are welcome! If you find any issues or have ideas for improvements, feel free to open an issue or submit a pull request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
