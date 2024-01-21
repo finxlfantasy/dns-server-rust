@@ -19,10 +19,6 @@ The server will start listening on the port specified in the code.
 
 3. **DNSAnswer**: This struct represents a DNS answer. It includes fields like `domain_name`, `query_type`, `query_class`, `ttl`, `rdlength`, and `rdata`.
 
-## Usage
-
-To use this DNS server, you need to have Rust installed on your machine. Then, you can run the server with the command `cargo run`.
-
 ## Customizing Responses
 
 You can easily customize the server’s behavior by modifying the DNSHeader, DNSQuestion, and DNSAnswer structs. Here are some ideas:
